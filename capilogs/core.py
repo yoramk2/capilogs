@@ -53,7 +53,7 @@ class AWSLogs(object):
         self.output_timestamp_enabled = kwargs.get('output_timestamp_enabled')
         self.output_ingestion_time_enabled = kwargs.get(
             'output_ingestion_time_enabled')
-        self.correlate_id = kwargs.get('correlate_id')
+        self.correlate_id = kwargs.get('correlate')
         self.start = self.parse_datetime(kwargs.get('start'))
         self.end = self.parse_datetime(kwargs.get('end'))
         self.next_tokens = {}
@@ -150,7 +150,9 @@ class AWSLogs(object):
         ## todo: remove shared kwargs
         def list_lambda_logs(allevents, kwargs):
             # add events from lambda function streams
-            fxns = self.get_lambda_function_names(self.api_id, self.stage)
+            stage = self.api_id[self.api_id.index("/")+1:]
+            api_id = self.api_id[0:self.api_id.index("/")]
+            fxns = self.get_lambda_function_names(api_id, stage)
             for fxn in fxns:
                 lambda_group = ("/aws/lambda/" + fxn).split(':')[0]
                 kwargs['logGroupName'] = lambda_group
@@ -294,7 +296,7 @@ class AWSLogs(object):
                 i = 0
                 while i < len(log_group_names)-1:
 
-                    print "log_group_namex", str(log_group_names[i]),"api_id",str(apis[i])
+                    #print "log_group_namex", str(log_group_names[i]),"api_id",str(apis[i])
 
                     self.log_group_name = log_group_names[i]
                     self.api_id = apis[i]

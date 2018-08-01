@@ -82,9 +82,9 @@ def main(argv=None):
                             help=("An API Gateway REST API ID"))
 
     get_parser.add_argument("-c",
-                            "--correlate-id",
-                            dest='correlate_id',
-                            help=("An API CORRELATION ID"))
+                            "--correlate",
+                            dest='correlate',
+                            help=("An API CORRELATION string"))
 
     get_parser.add_argument("-t",
                             "--stage",
@@ -156,12 +156,12 @@ def main(argv=None):
     if hasattr(options, 'api_id'):
         # build API Gateway log group name
         if not "," in options.api_id:
-            options.log_group_name = "API-Gateway-Execution-Logs_" + options.api_id + "/" + options.stage
+            options.log_group_name = "API-Gateway-Execution-Logs_" + options.api_id #+ "/" + options.stage
         else:
             list_of_names = ""
             list = options.api_id.split(",")
             for item in list:
-                group_name = "API-Gateway-Execution-Logs_" + item + "/" + options.stage
+                group_name = "API-Gateway-Execution-Logs_" + item #+ "/" + options.stage
                 list_of_names = list_of_names + group_name + ","
             options.log_group_name = list_of_names
         options.log_stream_name = "ALL"
