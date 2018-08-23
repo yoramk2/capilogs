@@ -26,6 +26,8 @@ def milis2iso(milis):
 
 log = logging.getLogger(__name__)
 
+#get --api-id uhgh02txwg/dev1,nrmeifk9de/yor_dev,4ahdtn3j86/yor_dev,uj3h703uec/yor_dev,bwgxcgewq4/yor_dev,0odqebgu6f/yor_dev,glonpgoxue/yor_dev --stage dev --aws-region us-east-1 --correlate webfront-dev1:/dev1/page --watch --output_timestamp_enabled
+
 class AWSLogs(object):
 
     ACTIVE = 1
@@ -126,7 +128,8 @@ class AWSLogs(object):
                 raise exceptions.NoStreamsFilteredError(self.log_stream_name)
 
         max_stream_length = max([len(s) for s in streams]) if streams else 10
-        group_length = len(self.log_group_name)
+        #group_length = len(self.log_group_name) + 15
+        group_length = max([len(s) + 15 for s in self.api_id]) if self.api_id else 30
 
         queue, exit = Queue(), Event()
 
@@ -150,9 +153,22 @@ class AWSLogs(object):
         ## todo: remove shared kwargs
         def list_lambda_logs(allevents, kwargs):
             # add events from lambda function streams
-            stage = self.api_id[self.api_id.index("/")+1:]
-            api_id = self.api_id[0:self.api_id.index("/")]
-            fxns = self.get_lambda_function_names(api_id, stage)
+            fxns = []
+            i = 0
+            while i < len(self.api_id):
+                api_item = self.api_id[i]
+                if "/" in api_item:
+                    api_stage = api_item[api_item.index("/")+1:]
+                    api_uuid = api_item[0:api_item.index("/")]
+                else:
+                    api_stage = self.stage
+                    api_uuid = api_item
+                fxnsz = self.get_lambda_function_names(api_uuid, api_stage)
+                for f in fxnsz:
+                    if f not in fxns:
+                        fxns.append(f)
+                i = i + 1
+            #print ("fxns="+str(fxns))
             for fxn in fxns:
                 lambda_group = ("/aws/lambda/" + fxn).split(':')[0]
                 kwargs['logGroupName'] = lambda_group
@@ -165,6 +181,7 @@ class AWSLogs(object):
                 try:
                     lambda_response = filter_log_events(**kwargs)
                     events = lambda_response.get('events', [])
+                    #print ("lambda_group=" + lambda_group+" events: "+str(len(events)))
                     for event in events:
                         event['group_name'] = lambda_group
                         allevents.append(event)
@@ -173,7 +190,7 @@ class AWSLogs(object):
                     log.warning("Error fetching logs for Lambda function {0}"
                                 " with group {1}. This function may need to be"
                                 " invoked.".format(fxn, lambda_group, e))
-                return allevents
+            return allevents
 
         ## todo: remove shared kwargs
         def list_apigateway_logs(allevents, kwargs):
@@ -261,9 +278,12 @@ class AWSLogs(object):
                 if self.correlate_id:
                     if self.correlate_id in event['message']:
                         output.append(event['message'])
+                        print(' '.join(output))
                 else:
                     output.append(event['message'])
-                print(' '.join(output))
+                    print(' '.join(output))
+                #print self.correlate_id,str(event)
+                #print(' '.join(output))
                 sys.stdout.flush()
 
         def generator():
@@ -286,46 +306,40 @@ class AWSLogs(object):
 
             #list = get_list()
 
-            log_group_names = self.log_group_name.split(",")
+            #log_group_names = self.log_group_name.split(",")
 
-            apis = self.api_id.split(",")
+            if "," in self.api_id:
+                apis = self.api_id.split(",")
+            else:
+                apis = [self.api_id]
+            self.api_id = apis
 
-            print "log_group_names",str(log_group_names),"apis",str(apis)
+            print "proccessing logs for lambdas:",str(apis)
 
             while not exit.is_set():
-                i = 0
-                while i < len(log_group_names)-1:
 
-                    #print "log_group_namex", str(log_group_names[i]),"api_id",str(apis[i])
+                kwargs = {'logGroupName': "abc",#self.log_group_name,
+                          'interleaved': True}
 
-                    self.log_group_name = log_group_names[i]
-                    self.api_id = apis[i]
+                if streams:
+                    kwargs['logStreamNames'] = streams
 
-                    kwargs = {'logGroupName': self.log_group_name,
-                              'interleaved': True}
+                if self.start:
+                    kwargs['startTime'] = self.start
 
-                    if streams:
-                        kwargs['logStreamNames'] = streams
+                if self.end:
+                    kwargs['endTime'] = self.end
 
-                    if self.start:
-                        kwargs['startTime'] = self.start
+                if self.filter_pattern:
+                    kwargs['filterPattern'] = self.filter_pattern
 
-                    if self.end:
-                        kwargs['endTime'] = self.end
+                list_lambda_logs(allevents, kwargs)
 
-                    if self.filter_pattern:
-                        kwargs['filterPattern'] = self.filter_pattern
-
-
-                    if True:
-
-                        list_apigateway_logs(allevents, kwargs)
-                        list_lambda_logs(allevents, kwargs)
-                        i += 1
-
-                sorted(allevents, key=itemgetter('timestamp'))
+                allevents = sorted(allevents, key=itemgetter('timestamp'))
+                print("sorted " + str(len(allevents)))
 
                 for event in allevents:
+                    #print str(event['group_name']), str(event['timestamp'])
                     if event['eventId'] not in interleaving_sanity:
                         interleaving_sanity.append(event['eventId'])
                         queue.put(event)

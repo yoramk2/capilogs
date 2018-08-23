@@ -156,14 +156,15 @@ def main(argv=None):
     if hasattr(options, 'api_id'):
         # build API Gateway log group name
         if not "," in options.api_id:
-            options.log_group_name = "API-Gateway-Execution-Logs_" + options.api_id #+ "/" + options.stage
+            options.log_group_name = options.api_id
         else:
-            list_of_names = ""
+            max_name = 30
             list = options.api_id.split(",")
             for item in list:
-                group_name = "API-Gateway-Execution-Logs_" + item #+ "/" + options.stage
-                list_of_names = list_of_names + group_name + ","
-            options.log_group_name = list_of_names
+                name_size = len(item) + 15
+                if name_size > max_name:
+                    max_name = name_size
+                    options.log_group_name = item
         options.log_stream_name = "ALL"
 
 
