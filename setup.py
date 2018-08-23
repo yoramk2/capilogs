@@ -15,7 +15,7 @@ if sys.version_info < (2, 7):
 
 setup(
     name='capilogs',
-    version='0.11.6',
+    version='0.11.7',
     url='http://github.com/yoramk2/capilogs',
     license='BSD',
     author='Yoram Kochol',

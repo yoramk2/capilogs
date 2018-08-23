@@ -258,10 +258,6 @@ class AWSLogs(object):
             """
             interleaving_sanity = deque(maxlen=self.MAX_EVENTS_PER_CALL)
 
-            allevents = []
-
-            #list = get_list()
-
             if "," in self.api_id:
                 apis = self.api_id.split(",")
             else:
@@ -270,22 +266,23 @@ class AWSLogs(object):
 
             print "proccessing logs for lambdas:",str(apis)
 
+            kwargs = {'logGroupName': "capilogs",  # self.log_group_name,
+                      'interleaved': True}
+
+            if streams:
+                kwargs['logStreamNames'] = streams
+
+            if self.start:
+                kwargs['startTime'] = self.start
+
+            if self.end:
+                kwargs['endTime'] = self.end
+
+            if self.filter_pattern:
+                kwargs['filterPattern'] = self.filter_pattern
+
             while not exit.is_set():
-
-                kwargs = {'logGroupName': "capilogs",#self.log_group_name,
-                          'interleaved': True}
-
-                if streams:
-                    kwargs['logStreamNames'] = streams
-
-                if self.start:
-                    kwargs['startTime'] = self.start
-
-                if self.end:
-                    kwargs['endTime'] = self.end
-
-                if self.filter_pattern:
-                    kwargs['filterPattern'] = self.filter_pattern
+                allevents = []
 
                 list_lambda_logs(allevents, kwargs)
 
