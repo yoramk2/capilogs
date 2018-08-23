@@ -43,10 +43,8 @@ class AWSLogs(object):
         self.aws_access_key_id = kwargs.get('aws_access_key_id')
         self.aws_secret_access_key = kwargs.get('aws_secret_access_key')
         self.aws_session_token = kwargs.get('aws_session_token')
-        self.log_group_name = kwargs.get('log_group_name')
         self.api_id = kwargs.get('api_id')
         self.stage = kwargs.get('stage')
-        self.log_stream_name = kwargs.get('log_stream_name')
         self.filter_pattern = kwargs.get('filter_pattern')
         self.watch = kwargs.get('watch')
         self.color_enabled = kwargs.get('color_enabled')
@@ -115,20 +113,7 @@ class AWSLogs(object):
     def list_logs(self):
         streams = []
 
-        if self.log_stream_name != self.ALL_WILDCARD:
-            streams = list(self._get_streams_from_pattern(self.log_group_name, self.log_stream_name))
-
-            if len(streams) > self.FILTER_LOG_EVENTS_STREAMS_LIMIT:
-                raise exceptions.TooManyStreamsFilteredError(
-                     self.log_stream_name,
-                     len(streams),
-                     self.FILTER_LOG_EVENTS_STREAMS_LIMIT
-                )
-            if len(streams) == 0:
-                raise exceptions.NoStreamsFilteredError(self.log_stream_name)
-
         max_stream_length = max([len(s) for s in streams]) if streams else 10
-        #group_length = len(self.log_group_name) + 15
         group_length = max([len(s) + 15 for s in self.api_id]) if self.api_id else 30
 
         queue, exit = Queue(), Event()
@@ -150,7 +135,6 @@ class AWSLogs(object):
                 if self.watch:
                     time.sleep(0.2)
 
-        ## todo: remove shared kwargs
         def list_lambda_logs(allevents, kwargs):
             # add events from lambda function streams
             fxns = []
@@ -190,34 +174,6 @@ class AWSLogs(object):
                     log.warning("Error fetching logs for Lambda function {0}"
                                 " with group {1}. This function may need to be"
                                 " invoked.".format(fxn, lambda_group, e))
-            return allevents
-
-        ## todo: remove shared kwargs
-        def list_apigateway_logs(allevents, kwargs):
-            # add events from API Gateway streams
-            kwargs['logGroupName'] = self.log_group_name
-            if self.log_group_name in self.next_tokens:
-                kwargs['nextToken'] = self.next_tokens[self.log_group_name]
-            else:
-                if 'nextToken' in kwargs:
-                    del kwargs['nextToken']
-
-            try:
-                apigresponse = filter_log_events(**kwargs)
-            except Exception as e:
-                log.error(
-                    "Error fetching logs for API {0}. Please ensure logging "
-                    "is enabled for this API and the API is deployed. See "
-                    "http://docs.aws.amazon.com/apigateway/latest/"
-                    "developerguide/how-to-stage-settings.html: {1}"
-                        .format(self.api_id, e))
-                raise
-
-            events = apigresponse.get('events', [])
-            for event in events:
-                event['group_name'] = self.log_group_name
-                allevents.append(event)
-            update_next_token(apigresponse, kwargs)
             return allevents
 
         def filter_log_events(**kwargs):
@@ -306,8 +262,6 @@ class AWSLogs(object):
 
             #list = get_list()
 
-            #log_group_names = self.log_group_name.split(",")
-
             if "," in self.api_id:
                 apis = self.api_id.split(",")
             else:
@@ -318,7 +272,7 @@ class AWSLogs(object):
 
             while not exit.is_set():
 
-                kwargs = {'logGroupName': "abc",#self.log_group_name,
+                kwargs = {'logGroupName': "capilogs",#self.log_group_name,
                           'interleaved': True}
 
                 if streams:
