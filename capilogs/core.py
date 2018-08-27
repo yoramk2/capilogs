@@ -53,10 +53,28 @@ class AWSLogs(object):
         self.output_timestamp_enabled = kwargs.get('output_timestamp_enabled')
         self.output_ingestion_time_enabled = kwargs.get(
             'output_ingestion_time_enabled')
-        self.correlate_id = kwargs.get('correlate')
+        self.filter_term = kwargs.get('filter_term')
         self.start = self.parse_datetime(kwargs.get('start'))
         self.end = self.parse_datetime(kwargs.get('end'))
         self.next_tokens = {}
+
+        if self.filter_pattern:
+            if self.filter_pattern.startswith("'"):
+                self.filter_pattern = '"'+self.filter_pattern[1:len(self.filter_pattern)-1]+'"'
+
+        if self.filter_term == 'ERROR':
+            if self.filter_pattern is None:
+                self.filter_pattern = '?Traceback ?TypeError'
+            else:
+                self.filter_pattern = self.filter_pattern + ' ?Traceback ?TypeError'
+        if self.filter_term == 'PERFORM':
+            if self.filter_pattern is None:
+                self.filter_pattern = 'timing for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+            else:
+                self.filter_pattern = self.filter_pattern + ' timing for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+        if self.filter_term == 'COST' and self.filter_pattern is None:
+            self.filter_pattern = 'cost for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+        print "filter_term>>>", self.filter_term,self.filter_pattern
 
         self.client = boto3.client(
             'logs',
@@ -231,15 +249,9 @@ class AWSLogs(object):
                             'blue'
                         )
                     )
-                if self.correlate_id:
-                    if self.correlate_id in event['message']:
-                        output.append(event['message'])
-                        print(' '.join(output))
-                else:
-                    output.append(event['message'])
-                    print(' '.join(output))
-                #print self.correlate_id,str(event)
-                #print(' '.join(output))
+
+                output.append(event['message'])
+                print(' '.join(output))
                 sys.stdout.flush()
 
         def generator():

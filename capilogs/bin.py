@@ -82,9 +82,9 @@ def main(argv=None):
                             help=("An API Gateway REST API ID"))
 
     get_parser.add_argument("-c",
-                            "--correlate",
-                            dest='correlate',
-                            help=("An API CORRELATION string"))
+                            "--filter-term",
+                            dest='filter_term',
+                            help=("A filter term for ERROR,PERFORM,COST "))
 
     get_parser.add_argument("-t",
                             "--stage",
