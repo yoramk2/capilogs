@@ -63,18 +63,24 @@ class AWSLogs(object):
                 self.filter_pattern = '"'+self.filter_pattern[1:len(self.filter_pattern)-1]+'"'
 
         if self.filter_term == 'ERROR':
+            #for python errors
+            term = '?Traceback ?TypeError ?AttributeError ?Exception ?"Syntax error"'
             if self.filter_pattern is None:
-                self.filter_pattern = '?Traceback ?TypeError'
+                self.filter_pattern = term
             else:
-                self.filter_pattern = self.filter_pattern + ' ?Traceback ?TypeError'
+                self.filter_pattern = self.filter_pattern + ' ' + term
         if self.filter_term == 'PERFORM':
+            term = 'timing for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
             if self.filter_pattern is None:
-                self.filter_pattern = 'timing for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+                self.filter_pattern = term
             else:
-                self.filter_pattern = self.filter_pattern + ' timing for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
-        if self.filter_term == 'COST' and self.filter_pattern is None:
-            self.filter_pattern = 'cost for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
-        print "filter_term>>>", self.filter_term,self.filter_pattern
+                self.filter_pattern = self.filter_pattern + ' ' + term
+        if self.filter_term == 'COST':
+            term = 'cost for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+            if self.filter_pattern is None:
+                self.filter_pattern = term
+            else:
+                self.second_run = term
 
         self.client = boto3.client(
             'logs',
