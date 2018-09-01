@@ -4,6 +4,7 @@ import datetime
 import os
 import re
 import uuid
+import time
 
 
 """
@@ -155,6 +156,10 @@ import uuid
 class Util:
 
 	logprefix = None
+
+	@staticmethod
+	def get_epoch():
+		return int(round(time.time() * 1000))
 	
 	@staticmethod
 	def get_start_log_msg(event):
@@ -237,7 +242,7 @@ class Util:
 		if ret is not None and "statusCode" in ret:
 			statusCode = ret["statusCode"] #8
 			msg["statusCode"] = statusCode
-		logTimeEpoch = datetime.datetime.now() #14
+		logTimeEpoch = Util.get_epoch() #14
 		msg["logTimeEpoch"] = logTimeEpoch
 		return msg
 	
@@ -304,12 +309,12 @@ def wrapper(wrapped, instance, args, kwargs):
 	"""
 	request_handler = args[0]
 	def _wrapper(event, context):
-		print(str(event))
+		print("event="+str(event))
 		logprefix = Util.get_correlation_from_event(event)
-		print(logprefix+' This is a start log by instrumenter '+Util.get_start_log_msg(event))
+		print(logprefix+' This is a start log by instrumenter '+str(Util.get_start_log_msg(event)))
 		ret = request_handler(event, context)
 		print("ret=",str(ret))
-		print(logprefix+' This is an end log by instrumenter '+Util.get_finish_log_msg(event,ret))
+		print(logprefix+' This is an end log by instrumenter '+str(Util.get_finish_log_msg(event,ret)))
 		return ret
 	return wrapped(_wrapper, *args[1:], **kwargs)
 
@@ -317,4 +322,4 @@ try:
 	wrapt.wrap_function_wrapper('__main__', 'handle_event_request', wrapper)
 	print("instrumenter : ok")
 except Exception as e:
-	print("instrumenter:"+str(e))
+	print("instrumenter error :"+str(e))
