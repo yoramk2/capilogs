@@ -5,6 +5,7 @@ import os
 import re
 import uuid
 import time
+import socket
 
 
 """
@@ -228,11 +229,11 @@ class Util:
 						method = event["requestContext"]["httpMethod"] 
 					else:
 						method = "method"
-				host_ip = "12.34.56.78" #4
+				host_ip = socket.gethostbyname(socket.gethostname()) #4
 			msg = {"userName":userName,"sourceIp":sourceIp,"cognitoAuthenticationType":cognitoAuthenticationType,"cognitoIdentityId":cognitoIdentityId,
 				"requestTimeEpoch":requestTimeEpoch,"Host":Host,"path":path,"method":method,"cognitoIdentityPoolId":cognitoIdentityPoolId,"hostIp":host_ip}
 		else:
-			msg = {"error":"no data in aws event"}
+			msg = {"error":str(event)}
 		return msg
 		
 	

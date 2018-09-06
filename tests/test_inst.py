@@ -1,14 +1,12 @@
-import inst.instrumenter
+from inst import instrumenter
 
-handle_event_request = None
 
-def handle_event_request():
-    print("start")
+def handle_event_request(event, context):
+    print("start "+str(event))
 
 
 def main():
-    handle_event_request()
-
+    handle_event_request({}, {})
 
 if __name__ == '__main__':
     main()
