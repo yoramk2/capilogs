@@ -104,6 +104,12 @@ def main(argv=None):
                             dest='watch',
                             help="Query for new log lines constantly")
 
+    get_parser.add_argument("-j",
+                            "--json",
+                            action='store_true',
+                            dest='json',
+                            help="show log messages in json")
+
     get_parser.add_argument("-G",
                             "--no-group",
                             action='store_false',

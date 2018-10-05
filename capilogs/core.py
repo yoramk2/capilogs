@@ -20,6 +20,15 @@ from dateutil.parser import parse
 from . import exceptions
 from operator import itemgetter, attrgetter, methodcaller
 
+import json
+
+def is_json(myjson):
+  try:
+    json_object = json.loads(myjson)
+  except ValueError, e:
+    return None
+  return json_object
+
 def milis2iso(milis):
     res = datetime.utcfromtimestamp(milis/1000.0).isoformat()
     return (res + ".000")[:23] + 'Z'
@@ -54,6 +63,7 @@ class AWSLogs(object):
         self.output_ingestion_time_enabled = kwargs.get(
             'output_ingestion_time_enabled')
         self.filter_term = kwargs.get('filter_term')
+        self.json = kwargs.get('json')
         self.start = self.parse_datetime(kwargs.get('start'))
         self.end = self.parse_datetime(kwargs.get('end'))
         self.next_tokens = {}
@@ -70,13 +80,13 @@ class AWSLogs(object):
             else:
                 self.filter_pattern = self.filter_pattern + ' ' + term
         if self.filter_term == 'PERFORM':
-            term = 'timing for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+            term = 'performance_data ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
             if self.filter_pattern is None:
                 self.filter_pattern = term
             else:
                 self.filter_pattern = self.filter_pattern + ' ' + term
         if self.filter_term == 'COST':
-            term = 'cost for ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+            term = 'REPORT RequestId:'
             if self.filter_pattern is None:
                 self.filter_pattern = term
             else:
@@ -256,7 +266,14 @@ class AWSLogs(object):
                         )
                     )
 
-                output.append(event['message'])
+                if self.json:
+                    json_obj = is_json(event['message'])
+                    if json_obj is not None:
+                        output.append(event['message'])#json.loads(json_obj))
+                    else:
+                        output.append(event['message'])
+                else:
+                    output.append(event['message'])
                 print(' '.join(output))
                 sys.stdout.flush()
 
