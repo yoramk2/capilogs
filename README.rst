@@ -108,14 +108,23 @@ Filter options
 ----------------
 
 You can use ``--filter-pattern`` if you want to only retrieve logs which match one CloudWatch Logs Filter pattern.
-This is helpful if you know precisely what you are looking for, and don't want to download the entire stream.
+This is helpful if you know precisely what you are looking for, and don't want to download the entire set of streams.
 
-For example, if you only want to download only the report events from a Lambda stream you can run::
+For example, if you only want to download the report events from a Lambda stream you can run::
 
   $ capilogs get my_lambda_group --filter-pattern="[r=REPORT,...]"
 
 
 Full documentation of how to write patterns: http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/FilterAndPatternSyntax.html
+
+You can use ``--filter-term`` if you want to only retrieve logs which match one CloudWatch Logs term.
+This is helpful if you know precisely what you are looking for, and don't want to download the entire set of streams.
+This option takes one of the following values: PERFORM ERROR COST or the correlation-id
+
+For example, if you only want to download the report events from a Lambda stream you can run::
+
+  $ capilogs get my_lambda_group --filter-term ERROR
+  $ capilogs get my_lambda_group --filter-term 1234-5678-1234-5678
 
 
 Contribute

@@ -72,25 +72,36 @@ class AWSLogs(object):
             if self.filter_pattern.startswith("'"):
                 self.filter_pattern = '"'+self.filter_pattern[1:len(self.filter_pattern)-1]+'"'
 
-        if self.filter_term == 'ERROR':
-            #for python errors
-            term = '?Traceback ?TypeError ?AttributeError ?Exception ?"Syntax error"'
-            if self.filter_pattern is None:
-                self.filter_pattern = term
+        if self.filter_term:
+            if self.filter_term == 'ERROR':
+                #for python errors
+                term = '?Traceback ?TypeError ?AttributeError ?Exception ?"Syntax error"'
+                if self.filter_pattern is None:
+                    self.filter_pattern = term
+                else:
+                    self.filter_pattern = self.filter_pattern + ' ' + term
+            elif self.filter_term == 'PERFORM':
+                #for performance
+                term = 'performance_data ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
+                if self.filter_pattern is None:
+                    self.filter_pattern = term
+                else:
+                    self.filter_pattern = self.filter_pattern + ' ' + term
+            elif self.filter_term == 'COST':
+                #for cost
+                term = 'REPORT RequestId:'
+                if self.filter_pattern is None:
+                    self.filter_pattern = term
+                else:
+                    self.second_run = term
+            elif self.filter_pattern is None:
+                self.filter_pattern = '"'+self.filter_term+'"'
             else:
-                self.filter_pattern = self.filter_pattern + ' ' + term
-        if self.filter_term == 'PERFORM':
-            term = 'performance_data ?LAMBDA ?API ?FILEACCESS ?DBACCESS'
-            if self.filter_pattern is None:
-                self.filter_pattern = term
-            else:
-                self.filter_pattern = self.filter_pattern + ' ' + term
-        if self.filter_term == 'COST':
-            term = 'REPORT RequestId:'
-            if self.filter_pattern is None:
-                self.filter_pattern = term
-            else:
-                self.second_run = term
+                self.filter_pattern = self.filter_pattern + ' ' + self.filter_term
+
+            if self.filter_pattern:
+                print("filter_pattern : "+self.filter_pattern)
+
 
         self.client = boto3.client(
             'logs',
