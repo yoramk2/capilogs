@@ -1,7 +1,7 @@
 capilogs
 ========
 
-``capilogs`` is a fork of the excellent `apilogs <https://github.com/jorgebastida/awslogs>`_ project and the `awslogs <https://github.com/jorgebastida/awslogs>`_ project with specific customizations suited to querying and streaming logs for
+``capilogs`` is a fork of the `apilogs <https://github.com/jorgebastida/awslogs>`_ project which is a fork of the `awslogs <https://github.com/jorgebastida/awslogs>`_ project with specific customizations suited to querying and streaming logs for
 Correlated Serverless API calls using `Amazon API Gateway <https://aws.amazon.com/api-gateway/>`_ and `AWS Lambda <https://aws.amazon.com/lambda/>`_.
 
 Simply provide a list of API Gateway API ID and Stage name and `capilogs` will automatically aggregate log events from all log groups & streams for your API Gateway APIS as well as all Lambda function log streams attached to each API.
