@@ -1,5 +1,5 @@
 capilogs
-=======
+========
 
 ``capilogs`` is a fork of the excellent `apilogs <https://github.com/jorgebastida/awslogs>`_ project and the `awslogs <https://github.com/jorgebastida/awslogs>`_ project with specific customizations suited to querying and streaming logs for
 Correlated Serverless APIs using `Amazon API Gateway <https://aws.amazon.com/api-gateway/>`_ and `AWS Lambda <https://aws.amazon.com/lambda/>`_.
@@ -7,14 +7,14 @@ Correlated Serverless APIs using `Amazon API Gateway <https://aws.amazon.com/api
 Simply provide a list of API Gateway API ID and Stage name and `capilogs` will automatically aggregate log events from all log groups & streams for your API Gateway APIS as well as all Lambda function log streams attached to each API.
 
 Installation/Running
--------
+--------------------
 $ pip install capilogs
 
 i.e. stream logs for your Serverless API:
-    $ capilogs get --api-id abc123,xyz123 --stage prod --watch
+    $ capilogs get --api-id abc123,xyz123 --stage dev --aws-region us-east-1 --watch
 
 Grep for errors one hour ago using credentials from AWS CLI profile "myprofile":
-    $ capilogs get --api-id abc123,xyz123 --stage test2 --profile myprofile --aws-region us-east-1 --start='2h ago' --end='1h ago' | grep "ERROR"
+    $ capilogs get --api-id abc123,xyz123 --stage test2 --profile myprofile --aws-region us-east-1 --start='2h ago' --end='1h ago' --filter-term ERROR
 
 
 .. image:: https://github.com/rpgreen/apilogs/blob/master/media/apilogs-screenshot.png
